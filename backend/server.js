@@ -2,23 +2,30 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-const app = express();
+const meetingMinutesRoutes = require("./routes/meetingMinutesRoutes");
 
+const meetingRoutes = require("./routes/meetingRoutes");
+
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+// Meeting routes
+ app.use("/api/meetings", meetingRoutes);
+ app.use("/api/meeting-minutes", meetingMinutesRoutes);
+
 // Test route
 app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "AI Meeting Minutes Generator API is running!"
-  });
+    res.json({
+        success: true,
+        message: "AI Meeting Minutes Generator API is running!"
+    });
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
