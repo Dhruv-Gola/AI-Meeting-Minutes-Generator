@@ -189,13 +189,14 @@ const generateMeetingMinutes = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Generate meeting minutes error:", error);
+    console.error("Generate meeting minutes error:", error);
 
-        res.status(500).json({
-            success: false,
-            message: "Failed to generate meeting minutes"
-        });
-    }
+    res.status(500).json({
+        success: false,
+        message: "Failed to generate meeting minutes",
+        error: error.message
+    });
+}
 };
 
 module.exports = {

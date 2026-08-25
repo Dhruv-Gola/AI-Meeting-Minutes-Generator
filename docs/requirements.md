@@ -24,7 +24,7 @@ The system should allow users to:
 - Paste meeting transcripts
 - Upload meeting transcripts
 - Store meeting transcripts
-
+ 
 ### 2.3 AI Processing
 
 The system should generate:

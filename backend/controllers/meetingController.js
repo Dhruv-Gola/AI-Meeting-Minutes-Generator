@@ -1,5 +1,6 @@
 const meetingService = require("../services/meetingService");
 
+
 const createMeeting = async (req, res) => {
     try {
         const { title, meetingDate, participants, transcript } = req.body;
@@ -34,9 +35,14 @@ const createMeeting = async (req, res) => {
     }
 };
 
+
 const getAllMeetings = async (req, res) => {
     try {
+        console.log("GET /api/meetings - fetching meetings...");
+
         const meetings = await meetingService.getAllMeetings();
+
+        console.log("Meetings fetched successfully:", meetings);
 
         res.status(200).json({
             success: true,
@@ -44,14 +50,16 @@ const getAllMeetings = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Get meetings error:", error);
+        console.error("GET MEETINGS ERROR:", error);
 
         res.status(500).json({
             success: false,
-            message: "Failed to fetch meetings"
+            message: "Failed to fetch meetings",
+            error: error.message
         });
     }
 };
+
 
 const getMeetingById = async (req, res) => {
     try {
@@ -80,6 +88,7 @@ const getMeetingById = async (req, res) => {
         });
     }
 };
+
 
 const updateMeeting = async (req, res) => {
     try {
@@ -124,6 +133,7 @@ const updateMeeting = async (req, res) => {
     }
 };
 
+
 const deleteMeeting = async (req, res) => {
     try {
         const { id } = req.params;
@@ -152,6 +162,7 @@ const deleteMeeting = async (req, res) => {
         });
     }
 };
+
 
 module.exports = {
     createMeeting,

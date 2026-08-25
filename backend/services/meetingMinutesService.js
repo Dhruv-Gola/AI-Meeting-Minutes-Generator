@@ -12,6 +12,13 @@ const createMeetingMinutes = async (
         `INSERT INTO meeting_minutes
         (meeting_id, summary, action_items, decisions, risks, open_questions)
         VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (meeting_id)
+        DO UPDATE SET
+            summary = EXCLUDED.summary,
+            action_items = EXCLUDED.action_items,
+            decisions = EXCLUDED.decisions,
+            risks = EXCLUDED.risks,
+            open_questions = EXCLUDED.open_questions
         RETURNING *`,
         [
             meetingId,
