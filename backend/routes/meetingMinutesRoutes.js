@@ -9,6 +9,11 @@ const {
     generateMeetingMinutes
 } = require("../controllers/meetingMinutesController");
 
+const { authenticateToken } = require("../middleware/authMiddleware");
+
+// All meeting-minutes routes require authentication
+router.use(authenticateToken);
+
 // Create meeting minutes
 router.post("/:meetingId/minutes", createMeetingMinutes);
 

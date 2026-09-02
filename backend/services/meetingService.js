@@ -1,39 +1,48 @@
 const pool = require("../config/db");
 
-const createMeeting = async (title, meetingDate, participants, transcript) => {
+const createMeeting = async (
+    userId,
+    title,
+    meetingDate,
+    participants,
+    transcript
+) => {
     const result = await pool.query(
         `INSERT INTO meetings
-        (title, meeting_date, participants, transcript)
-        VALUES ($1, $2, $3, $4)
+        (user_id, title, meeting_date, participants, transcript)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *`,
-        [title, meetingDate, participants, transcript]
+        [userId, title, meetingDate, participants, transcript]
     );
 
     return result.rows[0];
 };
 
-const getAllMeetings = async () => {
+const getAllMeetings = async (userId) => {
     const result = await pool.query(
         `SELECT * FROM meetings
-         ORDER BY meeting_date DESC, meeting_id DESC`
+         WHERE user_id = $1
+         ORDER BY meeting_date DESC, meeting_id DESC`,
+        [userId]
     );
 
     return result.rows;
 };
 
-const getMeetingById = async (meetingId) => {
+const getMeetingById = async (meetingId, userId) => {
     const result = await pool.query(
         `SELECT * FROM meetings
-         WHERE meeting_id = $1`,
-        [meetingId]
+         WHERE meeting_id = $1
+         AND user_id = $2`,
+        [meetingId, userId]
     );
 
     return result.rows[0];
 };
 
-// Update a meeting
 const updateMeeting = async (
     meetingId,
+    userId,
     title,
     meetingDate,
     participants,
@@ -46,19 +55,28 @@ const updateMeeting = async (
              participants = $3,
              transcript = $4
          WHERE meeting_id = $5
+         AND user_id = $6
          RETURNING *`,
-        [title, meetingDate, participants, transcript, meetingId]
+        [
+            title,
+            meetingDate,
+            participants,
+            transcript,
+            meetingId,
+            userId
+        ]
     );
 
     return result.rows[0];
 };
 
-const deleteMeeting = async (meetingId) => {
+const deleteMeeting = async (meetingId, userId) => {
     const result = await pool.query(
         `DELETE FROM meetings
          WHERE meeting_id = $1
+         AND user_id = $2
          RETURNING *`,
-        [meetingId]
+        [meetingId, userId]
     );
 
     return result.rows[0];

@@ -4,6 +4,7 @@ const meetingService = require("../services/meetingService");
 const createMeeting = async (req, res) => {
     try {
         const { title, meetingDate, participants, transcript } = req.body;
+        const userId = req.user.user_id;
 
         if (!title || !meetingDate) {
             return res.status(400).json({
@@ -13,6 +14,7 @@ const createMeeting = async (req, res) => {
         }
 
         const meeting = await meetingService.createMeeting(
+            userId,
             title,
             meetingDate,
             participants,
@@ -40,7 +42,9 @@ const getAllMeetings = async (req, res) => {
     try {
         console.log("GET /api/meetings - fetching meetings...");
 
-        const meetings = await meetingService.getAllMeetings();
+        const userId = req.user.user_id;
+
+        const meetings = await meetingService.getAllMeetings(userId);
 
         console.log("Meetings fetched successfully:", meetings);
 
@@ -64,8 +68,9 @@ const getAllMeetings = async (req, res) => {
 const getMeetingById = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user.user_id;
 
-        const meeting = await meetingService.getMeetingById(id);
+        const meeting = await meetingService.getMeetingById(id, userId);
 
         if (!meeting) {
             return res.status(404).json({
@@ -94,6 +99,7 @@ const updateMeeting = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, meetingDate, participants, transcript } = req.body;
+        const userId = req.user.user_id;
 
         if (!title || !meetingDate) {
             return res.status(400).json({
@@ -104,6 +110,7 @@ const updateMeeting = async (req, res) => {
 
         const meeting = await meetingService.updateMeeting(
             id,
+            userId,
             title,
             meetingDate,
             participants,
@@ -137,8 +144,9 @@ const updateMeeting = async (req, res) => {
 const deleteMeeting = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user.user_id;
 
-        const meeting = await meetingService.deleteMeeting(id);
+        const meeting = await meetingService.deleteMeeting(id, userId);
 
         if (!meeting) {
             return res.status(404).json({
