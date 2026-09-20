@@ -1,3 +1,4 @@
+const pool = require("../config/db");
 const generateMeetingMinutes = async (transcript) => {
     if (!transcript || !transcript.trim()) {
         throw new Error("Meeting transcript is required");
@@ -7,10 +8,16 @@ const generateMeetingMinutes = async (transcript) => {
         throw new Error("GEMINI_API_KEY is not configured");
     }
 
-    const prompt = `
-You are an AI meeting minutes assistant.
+    const templateResult = await pool.query(
+    "SELECT prompt FROM prompt_templates WHERE name = 'Standard Meeting Minutes' LIMIT 1"
+);
 
-Analyze the following meeting transcript and generate professional meeting minutes.
+const templatePrompt =
+    templateResult.rows[0]?.prompt ||
+    "Analyze the meeting transcript and generate professional meeting minutes.";
+
+const prompt = `
+${templatePrompt}
 
 Return ONLY a valid JSON object.
 Do not use markdown.
@@ -37,6 +44,15 @@ Rules:
 Meeting transcript:
 ${transcript}
 `;
+    const providerResult = await pool.query(
+    "SELECT config_value FROM system_config WHERE config_key = 'ai_provider'"
+);
+
+const aiProvider = providerResult.rows[0]?.config_value || "Google Gemini";
+
+if (aiProvider !== "Google Gemini") {
+    throw new Error(`Unsupported AI provider: ${aiProvider}`);
+}
 
     const response = await fetch(
         "https://generativelanguage.googleapis.com/v1beta/interactions",
@@ -47,7 +63,9 @@ ${transcript}
                 "x-goog-api-key": process.env.GEMINI_API_KEY
             },
             body: JSON.stringify({
-                model: "gemini-3.6-flash",
+                model: (await pool.query(
+                   "SELECT config_value FROM system_config WHERE config_key = 'ai_model'"
+                )).rows[0]?.config_value || "gemini-3.6-flash",
                 input: prompt
             })
         }

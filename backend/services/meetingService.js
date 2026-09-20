@@ -5,14 +5,15 @@ const createMeeting = async (
     title,
     meetingDate,
     participants,
-    transcript
+    transcript,
+    originalTranscript
 ) => {
     const result = await pool.query(
         `INSERT INTO meetings
-        (user_id, title, meeting_date, participants, transcript)
-        VALUES ($1, $2, $3, $4, $5)
+        (user_id, title, meeting_date, participants, transcript, original_transcript)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *`,
-        [userId, title, meetingDate, participants, transcript]
+        [userId, title, meetingDate, participants, transcript, originalTranscript]
     );
 
     return result.rows[0];

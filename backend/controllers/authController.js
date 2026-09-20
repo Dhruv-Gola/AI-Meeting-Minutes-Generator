@@ -4,7 +4,7 @@ const pool = require("../config/db");
 
 const register = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json({
@@ -38,7 +38,7 @@ const register = async (req, res) => {
             `INSERT INTO users (name, email, password_hash, role)
              VALUES ($1, $2, $3, $4)
              RETURNING user_id, name, email, role, created_at`,
-            [name, email, passwordHash, role || "user"]
+            [name, email, passwordHash, "user"]
         );
 
         res.status(201).json({
@@ -80,6 +80,17 @@ const login = async (req, res) => {
         }
 
         const user = result.rows[0];
+
+	if (user.role === "admin") {
+    const adminDomain = process.env.ADMIN_EMAIL_DOMAIN;
+
+    if (!adminDomain || !user.email.endsWith(`@${adminDomain}`)) {
+        return res.status(403).json({
+            success: false,
+            message: "Admin account must use the configured admin email domain"
+        });
+    }
+}
 
         const passwordMatch = await bcrypt.compare(
             password,

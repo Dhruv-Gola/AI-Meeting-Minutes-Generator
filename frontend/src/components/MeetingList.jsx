@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
-import { getMeetings } from "../services/api";
+import { getMeetings, searchMeetings } from "../services/api";
 
-function MeetingList({ onMeetingSelect }) {
+function MeetingList({ onSelectMeeting, refreshKey }) {
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         const loadMeetings = async () => {
             try {
-                const result = await getMeetings();
+                const result = searchQuery.trim()
+                   ? await searchMeetings(searchQuery)
+                   : await getMeetings();
 
                 if (result.success) {
                     setMeetings(result.data);
@@ -31,12 +34,19 @@ function MeetingList({ onMeetingSelect }) {
         };
 
         loadMeetings();
-    }, []);
+    }, [refreshKey, searchQuery]);
 
     return (
         <section className="meeting-list">
             <div className="container">
                 <h2>Recent Meetings</h2>
+
+                <input
+                   type="text"
+                   placeholder="Search meetings..."
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                />
 
                 {loading && (
                     <p>Loading meetings...</p>
@@ -61,9 +71,7 @@ function MeetingList({ onMeetingSelect }) {
                                     className="meeting-card"
                                     key={meeting.meeting_id}
                                     onClick={() =>
-                                        onMeetingSelect?.(
-                                            meeting.meeting_id
-                                        )
+                                        onSelectMeeting?.(meeting)
                                     }
                                     style={{
                                         cursor: "pointer"

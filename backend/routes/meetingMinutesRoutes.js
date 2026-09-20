@@ -4,6 +4,7 @@ const router = express.Router();
 const {
     createMeetingMinutes,
     getMeetingMinutes,
+    getMeetingActionItems,
     updateMeetingMinutes,
     deleteMeetingMinutes,
     generateMeetingMinutes
@@ -19,6 +20,8 @@ router.post("/:meetingId/minutes", createMeetingMinutes);
 
 // Get meeting minutes
 router.get("/:meetingId/minutes", getMeetingMinutes);
+
+router.get("/:meetingId/action-items", getMeetingActionItems);
 
 // Update meeting minutes
 router.put("/:meetingId/minutes", updateMeetingMinutes);

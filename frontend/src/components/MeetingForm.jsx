@@ -6,6 +6,7 @@ function MeetingForm({ onMeetingCreated, onCancel }) {
     const [meetingDate, setMeetingDate] = useState("");
     const [participants, setParticipants] = useState("");
     const [transcript, setTranscript] = useState("");
+    const [originalTranscript, setOriginalTranscript] = useState("");
 
     const [transcriptMode, setTranscriptMode] = useState("paste");
     const [selectedFile, setSelectedFile] = useState("");
@@ -18,38 +19,102 @@ function MeetingForm({ onMeetingCreated, onCancel }) {
     const handleFileChange = (event) => {
         const file = event.target.files?.[0];
 
-        if (!file) {
+    if (!file) {
+        return;
+    }
+
+    setError("");
+    setSelectedFile("");
+
+    // Maximum transcript file size: 5 MB
+    if (file.size > 5 * 1024 * 1024) {
+        setError("Transcript file must be smaller than 5 MB.");
+        event.target.value = "";
+        return;
+    }
+
+    // Supported transcript formats
+    const fileName = file.name.toLowerCase();
+    const allowedExtensions = [".txt", ".md", ".vtt", ".srt"];
+
+    const isSupported = allowedExtensions.some((extension) =>
+        fileName.endsWith(extension)
+    );
+
+    if (!isSupported) {
+        setError(
+            "Unsupported transcript format. Please upload TXT, MD, VTT, or SRT."
+        );
+        event.target.value = "";
+        return;
+    }
+
+    const isTeamsTranscript = fileName.endsWith(".vtt");
+
+    const reader = new FileReader();
+
+    reader.onload = (loadEvent) => {
+        const fileText = loadEvent.target?.result;
+        if (isTeamsTranscript) {
+             
+            setOriginalTranscript(fileText);
+    }
+
+        if (typeof fileText !== "string") {
+            setError("Unable to read the transcript file.");
             return;
         }
 
-        setError("");
+        let cleanedTranscript = fileText;
 
-        if (file.size > 5 * 1024 * 1024) {
-            setError("Transcript file must be smaller than 5 MB.");
-            event.target.value = "";
-            return;
-        }
+        // Microsoft Teams transcripts use WebVTT format.
+        if (isTeamsTranscript) {
+            const normalizedText = fileText.replace(/\r\n/g, "\n");
 
-        const reader = new FileReader();
-
-        reader.onload = (loadEvent) => {
-            const fileText = loadEvent.target?.result;
-
-            if (typeof fileText !== "string") {
-                setError("Unable to read the transcript file.");
+            if (!normalizedText.trim().startsWith("WEBVTT")) {
+                setError(
+                    "The uploaded VTT file does not appear to be a valid Microsoft Teams transcript."
+                );
+                event.target.value = "";
                 return;
             }
 
-            setTranscript(fileText);
-            setSelectedFile(file.name);
-        };
+            cleanedTranscript = normalizedText
+                // Remove WEBVTT header
+                .replace(/^WEBVTT[^\n]*\n+/i, "")
+                // Remove WebVTT NOTE/STYLE/REGION blocks
+                .replace(/(?:NOTE|STYLE|REGION)[\s\S]*?(?:\n{2,}|$)/gi, "")
+                // Remove timestamp lines
+                .replace(
+                    /^\d{2}:\d{2}(?::\d{2})?\.\d{3}\s+-->\s+\d{2}:\d{2}(?::\d{2})?\.\d{3}.*$/gm,
+                    ""
+                )
+                // Remove VTT cue settings / metadata lines
+                .replace(/^\s*[\d]+(?=\s*$)/gm, "")
+                // Clean excessive blank lines
+                .replace(/\n{3,}/g, "\n\n")
+                .trim();
 
-        reader.onerror = () => {
-            setError("Unable to read the transcript file.");
-        };
+            if (!cleanedTranscript) {
+                setError(
+                    "The Microsoft Teams transcript does not contain any transcript text."
+                );
+                event.target.value = "";
+                return;
+            }
+        }
 
-        reader.readAsText(file);
+        setTranscript(cleanedTranscript);
+        setSelectedFile(file.name);
     };
+
+    reader.onerror = () => {
+        setError("Unable to read the transcript file.");
+        event.target.value = "";
+    };
+
+    reader.readAsText(file);
+};
 
     const handleModeChange = (mode) => {
         setTranscriptMode(mode);
@@ -86,7 +151,8 @@ function MeetingForm({ onMeetingCreated, onCancel }) {
                 title: title.trim(),
                 meetingDate,
                 participants: participants.trim(),
-                transcript: transcript.trim()
+                transcript: transcript.trim(),
+                originalTranscript: originalTranscript || null
             });
 
             if (!result.success) {

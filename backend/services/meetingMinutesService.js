@@ -85,9 +85,88 @@ const deleteMeetingMinutes = async (meetingId) => {
     return result.rows[0];
 };
 
+const createActionItems = async (meetingId, actionItemsText) => {
+    if (!actionItemsText || !actionItemsText.trim()) {
+        return [];
+    }
+
+    const actionItems = actionItemsText
+        .split(/\n|(?=\d+\.\s)|(?=[A-Z][a-z]+(?:\s+(?:will|to|should)|:))/)
+        .map(item => item.replace(/^\d+\.\s*/, "").trim())
+        .filter(Boolean)
+        .filter(item => item.toLowerCase() !== "none identified");
+
+    const createdItems = [];
+
+    for (const item of actionItems) {
+        let assignee = null;
+        let description = item;
+
+        // Format: "Alex: Prepare the frontend changes."
+        if (item.includes(":")) {
+            const parts = item.split(":");
+            assignee = parts[0].trim();
+            description = parts.slice(1).join(":").trim();
+        }
+
+        // Format: "Alex will prepare the frontend changes."
+        else {
+            const match = item.match(
+                /^([A-Z][a-z]+)\s+(?:will|to|should)\s+(.+)$/i
+            );
+
+            if (match) {
+                assignee = match[1].trim();
+                description = match[2].trim();
+
+                if (description) {
+                    description =
+                        description.charAt(0).toUpperCase() +
+                        description.slice(1);
+                }
+            }
+        }
+
+        const result = await pool.query(
+            `INSERT INTO action_items
+            (meeting_id, assignee, description, due_date, status)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *`,
+            [meetingId, assignee, description, null, "Pending"]
+        );
+
+        createdItems.push(result.rows[0]);
+    }
+
+    return createdItems;
+};
+
+const deleteActionItems = async (meetingId) => {
+    await pool.query(
+        `DELETE FROM action_items
+         WHERE meeting_id = $1`,
+        [meetingId]
+    );
+};
+
+const getActionItems = async (meetingId) => {
+    const result = await pool.query(
+        `SELECT *
+         FROM action_items
+         WHERE meeting_id = $1
+         ORDER BY created_at ASC`,
+        [meetingId]
+    );
+
+    return result.rows;
+};
+
 module.exports = {
     createMeetingMinutes,
     getMeetingMinutes,
     updateMeetingMinutes,
-    deleteMeetingMinutes
+    deleteMeetingMinutes,
+    deleteActionItems,
+    createActionItems,
+    getActionItems
 };

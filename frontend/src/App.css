@@ -706,6 +706,89 @@ a {
   white-space: pre-line;
 }
 
+/* =========================================
+   ACTION ITEMS TABLE
+   ========================================= */
+
+.action-items-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 24px;
+  overflow: hidden;
+  border: 1px solid #e3e8f0;
+  border-radius: 9px;
+  background: white;
+  table-layout: fixed;
+}
+
+.action-items-table th {
+  padding: 14px 20px;
+  background: #f6f8fc;
+  color: #18243a;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid #e3e8f0;
+}
+
+.action-items-table td {
+  padding: 14px 20px;
+  color: #53627a;
+  font-size: 14px;
+  line-height: 1.5;
+  border-bottom: 1px solid #e8ecf2;
+  vertical-align: middle;
+}
+
+.action-items-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.action-items-table th:nth-child(1),
+.action-items-table td:nth-child(1) {
+  width: 20%;
+}
+
+.action-items-table th:nth-child(2),
+.action-items-table td:nth-child(2) {
+  width: 50%;
+}
+
+.action-items-table th:nth-child(3),
+.action-items-table td:nth-child(3) {
+  width: 18%;
+}
+
+.action-items-table th:nth-child(4),
+.action-items-table td:nth-child(4) {
+  width: 12%;
+}
+
+.action-items-table td:first-child {
+  color: #26354d;
+  font-weight: 500;
+}
+
+.action-items-table td:last-child {
+  color: #d98a00;
+  font-weight: 600;
+}
+
+.action-items-table tbody tr:hover {
+  background: #fafbfe;
+}
+.action-status {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #d88a00;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
 
 /* =========================================
    FOOTER

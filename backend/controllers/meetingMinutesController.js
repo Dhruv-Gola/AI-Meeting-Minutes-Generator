@@ -1,6 +1,8 @@
 const meetingMinutesService = require("../services/meetingMinutesService");
 const meetingMinutesAIService = require("../services/meetingMinutesAIService");
 const meetingService = require("../services/meetingService");
+const getActionItems = meetingMinutesService.getActionItems;
+const deleteActionItems = meetingMinutesService.deleteActionItems;
 
 const createMeetingMinutes = async (req, res) => {
     try {
@@ -65,6 +67,39 @@ const getMeetingMinutes = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to fetch meeting minutes"
+        });
+    }
+};
+
+const getMeetingActionItems = async (req, res) => {
+    try {
+        const { meetingId } = req.params;
+
+        const meeting = await meetingService.getMeetingById(
+            meetingId,
+            req.user.user_id
+        );
+
+        if (!meeting) {
+            return res.status(404).json({
+                success: false,
+                message: "Meeting not found"
+            });
+        }
+
+        const actionItems = await getActionItems(meetingId);
+
+        res.status(200).json({
+            success: true,
+            data: actionItems
+        });
+
+    } catch (error) {
+        console.error("Get action items error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to get action items"
         });
     }
 };
@@ -149,7 +184,10 @@ const generateMeetingMinutes = async (req, res) => {
         const { meetingId } = req.params;
 
         // Get meeting and transcript
-        const meeting = await meetingService.getMeetingById(meetingId);
+        const meeting = await meetingService.getMeetingById(
+            meetingId,
+            req.user.user_id
+        );
 
         if (!meeting) {
             return res.status(404).json({
@@ -172,15 +210,21 @@ const generateMeetingMinutes = async (req, res) => {
             );
 
         // Save generated minutes
-        const minutes =
-            await meetingMinutesService.createMeetingMinutes(
-                meetingId,
-                generatedMinutes.summary,
-                generatedMinutes.actionItems,
-                generatedMinutes.decisions,
-                generatedMinutes.risks,
-                generatedMinutes.openQuestions
-            );
+        const minutes = await meetingMinutesService.createMeetingMinutes(
+          meetingId,
+          generatedMinutes.summary,
+          generatedMinutes.actionItems,
+          generatedMinutes.decisions,
+          generatedMinutes.risks,
+          generatedMinutes.openQuestions
+        );
+
+        await deleteActionItems(meetingId);
+
+        await meetingMinutesService.createActionItems(
+            meetingId,
+            generatedMinutes.actionItems
+        );
 
         res.status(201).json({
             success: true,
@@ -202,7 +246,9 @@ const generateMeetingMinutes = async (req, res) => {
 module.exports = {
     createMeetingMinutes,
     getMeetingMinutes,
+    getMeetingActionItems,
     updateMeetingMinutes,
     deleteMeetingMinutes,
     generateMeetingMinutes
+   
 };

@@ -3,7 +3,7 @@ const meetingService = require("../services/meetingService");
 
 const createMeeting = async (req, res) => {
     try {
-        const { title, meetingDate, participants, transcript } = req.body;
+        const { title, meetingDate, participants, transcript, originalTranscript } = req.body;
         const userId = req.user.user_id;
 
         if (!title || !meetingDate) {
@@ -18,7 +18,8 @@ const createMeeting = async (req, res) => {
             title,
             meetingDate,
             participants,
-            transcript
+            transcript,
+            originalTranscript
         );
 
         res.status(201).json({

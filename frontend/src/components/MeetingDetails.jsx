@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import jsPDF from "jspdf";
 import {
     getMeeting,
     getMeetingMinutes,
+    getMeetingActionItems,
     generateMinutes,
     updateMeetingMinutes,
     deleteMeetingMinutes
@@ -10,6 +12,7 @@ import {
 function MeetingDetails({ meetingId, onBack }) {
     const [meeting, setMeeting] = useState(null);
     const [minutes, setMinutes] = useState(null);
+    const [meetingActionItems, setMeetingActionItems] = useState([]);
 
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
@@ -76,6 +79,14 @@ function MeetingDetails({ meetingId, onBack }) {
                     setMinutes(null);
                 }
             }
+            const actionItemsResult =
+                await getMeetingActionItems(meetingId);
+
+            if (actionItemsResult.success) {
+                setMeetingActionItems(actionItemsResult.data || []);
+            }            
+
+
         } catch (err) {
             if (!cancelled) {
                 console.error(
@@ -216,7 +227,179 @@ function MeetingDetails({ meetingId, onBack }) {
         }
     };
 
+    const handleExportTXT = () => {
+    if (!meeting || !minutes) {
+        return;
+    }
+
+    const content = `
+AI MEETING MINUTES
+
+Title: ${meeting.title}
+Date: ${
+        meeting.meeting_date
+            ? new Date(meeting.meeting_date).toLocaleString()
+            : "No date"
+    }
+Participants: ${
+        meeting.participants || "No participants listed"
+    }
+
+SUMMARY
+${minutes.summary || "None identified"}
+
+ACTION ITEMS
+${
+    minutes.action_items ||
+    minutes.actionItems ||
+    "None identified"
+}
+
+DECISIONS
+${minutes.decisions || "None identified"}
+
+RISKS
+${minutes.risks || "None identified"}
+
+OPEN QUESTIONS
+${
+    minutes.open_questions ||
+    minutes.openQuestions ||
+    "None identified"
+}
+`.trim();
+
+    const blob = new Blob([content], {
+        type: "text/plain"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${meeting.title || "meeting-minutes"}.txt`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+};
+
+const handleExportPDF = () => {
+    if (!meeting || !minutes) {
+        return;
+    }
+
+    const doc = new jsPDF();
+
+    let y = 20;
+
+    doc.setFontSize(18);
+    doc.text("AI Meeting Minutes", 20, y);
+
+    y += 15;
+    doc.setFontSize(12);
+    doc.text(`Title: ${meeting.title || "No title"}`, 20, y);
+
+    y += 8;
+    doc.text(
+        `Date: ${
+            meeting.meeting_date
+                ? new Date(meeting.meeting_date).toLocaleString()
+                : "No date"
+        }`,
+        20,
+        y
+    );
+
+    y += 8;
+    doc.text(
+        `Participants: ${meeting.participants || "No participants listed"}`,
+        20,
+        y
+    );
+
+    y += 15;
+
+    doc.setFontSize(14);
+    doc.text("Summary", 20, y);
+
+    y += 8;
+    doc.setFontSize(12);
+
+    const summary = doc.splitTextToSize(
+        minutes.summary || "None identified",
+        170
+    );
+
+    doc.text(summary, 20, y);
+    y += summary.length * 7 + 10;
+
+    doc.setFontSize(14);
+    doc.text("Action Items", 20, y);
+
+    y += 8;
+    doc.setFontSize(12);
+
+    const actionItems = doc.splitTextToSize(
+        minutes.action_items ||
+            minutes.actionItems ||
+            "None identified",
+        170
+    );
+
+    doc.text(actionItems, 20, y);
+    y += actionItems.length * 7 + 10;
+
+    doc.setFontSize(14);
+    doc.text("Decisions", 20, y);
+
+    y += 8;
+    doc.setFontSize(12);
+
+    const decisions = doc.splitTextToSize(
+        minutes.decisions || "None identified",
+        170
+    );
+
+    doc.text(decisions, 20, y);
+    y += decisions.length * 7 + 10;
+
+    doc.setFontSize(14);
+    doc.text("Risks", 20, y);
+
+    y += 8;
+    doc.setFontSize(12);
+
+    const risks = doc.splitTextToSize(
+        minutes.risks || "None identified",
+        170
+    );
+
+    doc.text(risks, 20, y);
+    y += risks.length * 7 + 10;
+
+    doc.setFontSize(14);
+    doc.text("Open Questions", 20, y);
+
+    y += 8;
+    doc.setFontSize(12);
+
+    const openQuestions = doc.splitTextToSize(
+        minutes.open_questions ||
+            minutes.openQuestions ||
+            "None identified",
+        170
+    );
+
+    doc.text(openQuestions, 20, y);
+
+    doc.save(`${meeting.title || "meeting-minutes"}.pdf`);
+};
+    
     const handleGenerateMinutes = async () => {
+        console.log("GENERATE BUTTON CLICKED - meetingId:", meetingId);
         try {
             setGenerating(true);
             setError("");
@@ -231,8 +414,18 @@ function MeetingDetails({ meetingId, onBack }) {
                 );
             }
 
-            setMinutes(result.data);
-            setEditing(false);
+           setMinutes(result.data);
+
+           const actionItemsResult =
+                await getMeetingActionItems(meetingId);
+
+           if (actionItemsResult.success) {
+               setMeetingActionItems(
+                   actionItemsResult.data || []
+               );
+            }
+
+           setEditing(false);
 
         } catch (err) {
             console.error("Generate minutes error:", err);
@@ -353,6 +546,14 @@ function MeetingDetails({ meetingId, onBack }) {
                             : "Generate Minutes"}
                     </button>
 
+                    <button onClick={handleExportTXT} disabled={!minutes}>
+                        Export TXT
+                    </button>
+
+                    <button onClick={handleExportPDF} disabled={!minutes}>
+                        Export PDF
+                    </button>
+
                 </div>
 
             </div>
@@ -397,18 +598,44 @@ function MeetingDetails({ meetingId, onBack }) {
                     </div>
 
                     <div className="minutes-card">
-                        <p className="section-label">
-                            ACTION ITEMS
-                        </p>
+    <p className="section-label">
+        ACTION ITEMS
+    </p>
 
-                        <h2>Action Items</h2>
+    <h2>Action Items</h2>
 
-                        <p className="minutes-text">
-                            {minutes.action_items ||
-                                minutes.actionItems ||
-                                "None identified"}
-                        </p>
-                    </div>
+    {meetingActionItems.length > 0 ? (
+        <table className="action-items-table">
+            <thead>
+                <tr>
+                    <th>Assignee</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {meetingActionItems.map((item) => (
+                    <tr key={item.action_item_id}>
+                        <td>{item.assignee || "Unassigned"}</td>
+                        <td>{item.description}</td>
+                        <td>{item.due_date || "Not set"}</td>
+                        <td>
+                         <span className="action-status">
+                           {item.status || "Pending"}
+                         </span>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    ) : (
+        <p className="minutes-text">
+            No action items found.
+        </p>
+    )}
+</div> 
 
                     <div className="minutes-card">
                         <p className="section-label">
