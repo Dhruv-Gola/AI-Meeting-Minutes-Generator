@@ -47,13 +47,28 @@ function Register({ onRegisterSuccess }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>AI Meeting Minutes Generator</h1>
-        <h2>Create Account</h2>
 
-        <form onSubmit={handleSubmit}>
+        <div className="login-brand">
+          <div className="login-logo">AI</div>
+
+          <div>
+            <h1>AI Meeting Minutes</h1>
+            <p>Generator</p>
+          </div>
+        </div>
+
+        <div className="login-heading">
+          <h2>Create your account</h2>
+          <p>Start organizing your meeting minutes with AI.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
+
           <div className="form-group">
-            <label>Name</label>
+            <label htmlFor="name">Full name</label>
+
             <input
+              id="name"
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -63,19 +78,23 @@ function Register({ onRegisterSuccess }) {
           </div>
 
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="register-email">Email address</label>
+
             <input
+              id="register-email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="Enter your email"
+              placeholder="you@example.com"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="register-password">Password</label>
+
             <input
+              id="register-password"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -84,14 +103,43 @@ function Register({ onRegisterSuccess }) {
             />
           </div>
 
-          {error && <p className="login-error">{error}</p>}
+          {error && (
+            <p className="login-error">
+              {error}
+            </p>
+          )}
 
-          {message && <p className="login-success">{message}</p>}
+          {message && (
+            <p className="login-success">
+              {message}
+            </p>
+          )}
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Creating Account..." : "Register"}
+          <button
+            type="submit"
+            className="login-button"
+            disabled={loading}
+          >
+            {loading ? "Creating account..." : "Create account"}
           </button>
+
         </form>
+
+        <div className="login-divider">
+          <span>or</span>
+        </div>
+
+        <p className="register-link">
+          Already have an account?
+
+          <button
+            type="button"
+            onClick={onRegisterSuccess}
+          >
+            Back to login
+          </button>
+        </p>
+
       </div>
     </div>
   );

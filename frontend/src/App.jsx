@@ -46,7 +46,6 @@ function App() {
     );
   }
 
-  // Admin users go to the Admin Portal
   if (user.role === "admin") {
     return (
       <AdminDashboard
@@ -56,36 +55,66 @@ function App() {
     );
   }
 
-  // Normal users go to the User Portal
   return (
     <div className="app">
       <header className="app-header">
-        <div>
+        <div className="app-header-left">
+          <div className="app-logo" aria-label="AI">
+            AI
+          </div>
+
           <h1>AI Meeting Minutes Generator</h1>
-          <p>Welcome, {user.name}</p>
         </div>
 
-        <button onClick={handleLogout}>Logout</button>
+        <div className="app-header-right">
+          <div className="user-welcome">
+            <div className="user-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="3.2" />
+                <path d="M5.5 20c0-3.5 2.9-6 6.5-6s6.5 2.5 6.5 6" />
+              </svg>
+            </div>
+
+            <span className="welcome-label">Welcome,</span>
+            <strong>{user.name}</strong>
+            <span className="user-arrow" aria-hidden="true">⌄</span>
+          </div>
+
+          <button
+            type="button"
+            className="logout-button"
+            onClick={handleLogout}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 5H5v14h5" />
+              <path d="M14 8l4 4-4 4" />
+              <path d="M18 12H9" />
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
       </header>
 
       <main className="app-content">
         {selectedMeeting ? (
           <MeetingDetails
-           meetingId={selectedMeeting.meeting_id}
-           onBack={() => setSelectedMeeting(null)}
-       />
+            meetingId={selectedMeeting.meeting_id}
+            onBack={() => setSelectedMeeting(null)}
+          />
         ) : (
           <>
             <MeetingForm
-  onMeetingCreated={() => setMeetingListKey((key) => key + 1)}
-/>
+              onMeetingCreated={() =>
+                setMeetingListKey((key) => key + 1)
+              }
+            />
 
-          <MeetingList
-  refreshKey={meetingListKey}
-  onSelectMeeting={(meeting) =>
-    setSelectedMeeting(meeting)
-  }
-/>
+            <MeetingList
+              refreshKey={meetingListKey}
+              onSelectMeeting={(meeting) =>
+                setSelectedMeeting(meeting)
+              }
+            />
           </>
         )}
       </main>
@@ -94,6 +123,3 @@ function App() {
 }
 
 export default App;
-
-                    
-                 

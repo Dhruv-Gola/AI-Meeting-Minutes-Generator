@@ -39,24 +39,39 @@ function Login({ onLogin, onRegister }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>AI Meeting Minutes Generator</h1>
-        <h2>Login</h2>
+        <div className="login-brand">
+          <div className="login-logo">AI</div>
 
-        <form onSubmit={handleSubmit}>
+          <div>
+            <h1>AI Meeting Minutes</h1>
+            <p>Generator</p>
+          </div>
+        </div>
+
+        <div className="login-heading">
+          <h2>Welcome back</h2>
+          <p>Sign in to continue to your meetings.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email address</label>
+
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="Enter your email"
+              placeholder="you@example.com"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
+
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -67,13 +82,22 @@ function Login({ onLogin, onRegister }) {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            className="login-button"
+            disabled={loading}
+          >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
+        <div className="login-divider">
+          <span>or</span>
+        </div>
+
         <p className="register-link">
-          Don't have an account?{" "}
+          Don't have an account?
+
           <button type="button" onClick={onRegister}>
             Create an account
           </button>

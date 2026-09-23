@@ -193,13 +193,16 @@ function MeetingForm({ onMeetingCreated, onCancel }) {
             <div className="meeting-form-header">
                 <h2>Create New Meeting</h2>
 
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    disabled={loading}
-                >
-                    Cancel
-                </button>
+                {onCancel && (
+    <button
+        type="button"
+        className="meeting-cancel-button"
+        onClick={onCancel}
+        disabled={loading}
+    >
+        Cancel
+    </button>
+)}
             </div>
 
             <form onSubmit={handleSubmit}>
